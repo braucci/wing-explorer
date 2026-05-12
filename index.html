@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wing Explorer — Esploratore di Strutture Alari</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=JetBrains+Mono:wght@300;400;500;700&family=Inter+Tight:wght@300;400;500;600;800&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --paper: #f4ede0;
+  --ink: #0d2240;
+  --ink-soft: #1f3a6b;
+  --ink-pale: #6a82a8;
+  --accent: #b8412c;
+  --grid: rgba(13, 34, 64, 0.08);
+  --grid-strong: rgba(13, 34, 64, 0.16);
+  --panel-bg: rgba(244, 237, 224, 0.92);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    linear-gradient(var(--grid-strong) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px);
+  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+  overflow: hidden;
+}
+.app {
+  display: grid;
+  grid-template-columns: 340px 1fr 340px;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh; width: 100vw;
+}
+.app-header {
+  grid-column: 1 / -1;
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 14px 24px 10px;
+  border-bottom: 1.5px solid var(--ink);
+  background: var(--paper);
+  position: relative; z-index: 5;
+}
+.app-header::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -5px;
+  height: 1.5px; background: var(--ink);
+}
+.brand {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 20px; letter-spacing: 0.12em;
+  text-transform: lowercase; color: var(--ink);
+}
+.brand-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--ink-pale);
+}
+.meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-soft);
+  display: flex; gap: 16px; align-items: center;
+}
+.stamp {
+  border: 1.5px solid var(--accent); color: var(--accent);
+  padding: 3px 8px; transform: rotate(-2deg); font-weight: 700;
+}
+.panel {
+  background: var(--panel-bg);
+  border-right: 1.5px solid var(--ink);
+  padding: 16px 14px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.panel.right { border-right: none; border-left: 1.5px solid var(--ink); }
+.section {
+  border: 1px solid var(--ink); padding: 10px 12px 12px;
+  background: rgba(244, 237, 224, 0.6);
+}
+.section h3 {
+  margin: 0 0 10px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.26em;
+  text-transform: uppercase; color: var(--ink);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.section h3 .ref { color: var(--ink-pale); font-weight: 400; }
+.section p {
+  margin: 6px 0; font-size: 11.5px; line-height: 1.5;
+  color: var(--ink-soft);
+}
+.control { margin: 8px 0; }
+.control label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-soft);
+  display: flex; justify-content: space-between; margin-bottom: 2px;
+}
+.control label .val { color: var(--accent); font-weight: 700; }
+.control input[type="range"] {
+  width: 100%; appearance: none; -webkit-appearance: none;
+  background: transparent; margin: 0; padding: 6px 0;
+}
+.control input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: var(--ink); }
+.control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px;
+  background: var(--paper); border: 2px solid var(--ink);
+  border-radius: 50%; margin-top: -6px; cursor: pointer;
+}
+.control input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent); border-color: var(--accent);
+}
+.control input[type="range"]::-moz-range-track { height: 2px; background: var(--ink); }
+.control input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; background: var(--paper);
+  border: 2px solid var(--ink); border-radius: 50%; cursor: pointer;
+}
+.naca-code {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 32px; text-align: center; letter-spacing: 0.18em;
+  color: var(--ink); padding: 6px 0;
+  border-top: 1px dashed var(--ink-pale);
+  border-bottom: 1px dashed var(--ink-pale);
+  position: relative;
+}
+.naca-code::before {
+  content: 'NACA'; position: absolute; top: -7px; left: 12px;
+  background: var(--paper); padding: 0 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 0.3em; color: var(--accent);
+}
+.preset-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 5px; margin-top: 10px;
+}
+.preset-row.four { grid-template-columns: repeat(4, 1fr); }
+.preset-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; letter-spacing: 0.1em;
+  padding: 6px 3px; background: transparent;
+  border: 1px solid var(--ink); color: var(--ink); cursor: pointer;
+  transition: all .15s;
+}
+.preset-btn:hover { background: var(--ink); color: var(--paper); }
+.preset-btn.active { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+.props {
+  display: grid; grid-template-columns: 1fr auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; gap: 3px 12px;
+}
+.props .k { color: var(--ink-pale); letter-spacing: 0.12em; text-transform: uppercase; font-size: 9.5px; }
+.props .v { color: var(--ink); font-weight: 700; text-align: right; }
+.airfoil-2d {
+  width: 100%; aspect-ratio: 3.2 / 1;
+  border: 1px solid var(--ink);
+  background: rgba(244, 237, 224, 0.4); display: block;
+}
+.viewer {
+  position: relative; overflow: hidden;
+}
+#viewer-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+.viewer-corner {
+  position: absolute;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--ink-soft);
+  pointer-events: none; z-index: 2;
+}
+.viewer-corner.tl { top: 14px; left: 14px; }
+.viewer-corner.tr { top: 14px; right: 14px; text-align: right; }
+.viewer-corner.bl { bottom: 14px; left: 14px; }
+.viewer-corner.br { bottom: 14px; right: 14px; text-align: right; }
+.viewer-corner strong {
+  display: block; font-size: 14px; letter-spacing: 0.05em;
+  color: var(--ink); font-family: 'Major Mono Display', monospace;
+  text-transform: lowercase; margin-top: 2px;
+}
+.viewer::before, .viewer::after,
+.viewer .bracket-bl, .viewer .bracket-br {
+  content: ''; position: absolute; width: 24px; height: 24px;
+  border: 1.5px solid var(--ink); pointer-events: none; z-index: 2;
+}
+.viewer::before { top: 0; left: 0; border-right: none; border-bottom: none; }
+.viewer::after  { top: 0; right: 0; border-left: none; border-bottom: none; }
+.viewer .bracket-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+.viewer .bracket-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+.app-footer {
+  grid-column: 1 / -1; border-top: 1.5px solid var(--ink);
+  padding: 8px 24px; background: var(--paper);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-pale);
+  display: flex; justify-content: space-between; gap: 10px;
+}
+.app-footer .equation {
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: none; letter-spacing: 0; color: var(--ink-soft);
+}
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 5px 0; font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-soft); cursor: pointer;
+  user-select: none;
+}
+.toggle-row input { display: none; }
+.toggle-row .box {
+  width: 14px; height: 14px; border: 1.5px solid var(--ink);
+  display: inline-flex; align-items: center; justify-content: center; margin-left: 8px;
+}
+.toggle-row input:checked + .box::before {
+  content: '×'; font-family: 'Major Mono Display', monospace;
+  font-size: 14px; line-height: 1; color: var(--accent);
+}
+.panel::-webkit-scrollbar { width: 5px; }
+.panel::-webkit-scrollbar-thumb { background: var(--ink-pale); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div>
+      <div class="brand">wing · explorer</div>
+      <div class="brand-tag">strutture alari · profili naca 4 cifre</div>
+    </div>
+    <div class="meta">
+      <span>r.a.u.c.c.i. · itis e. majorana</span>
+      <span class="stamp">DIDATTICO</span>
+    </div>
+  </header>
+
+  <aside class="panel left">
+
+    <div class="section">
+      <h3>Identificazione profilo <span class="ref">[NACA-4]</span></h3>
+      <div class="naca-code" id="naca-code">2412</div>
+
+      <div class="control">
+        <label>M · inarcatura max <span class="val" id="lab-m">2 %</span></label>
+        <input type="range" id="sl-m" min="0" max="9" step="1" value="2" />
+      </div>
+      <div class="control">
+        <label>P · pos. max inarcatura <span class="val" id="lab-p">40 %</span></label>
+        <input type="range" id="sl-p" min="0" max="9" step="1" value="4" />
+      </div>
+      <div class="control">
+        <label>XX · spessore max <span class="val" id="lab-t">12 %</span></label>
+        <input type="range" id="sl-t" min="6" max="24" step="1" value="12" />
+      </div>
+
+      <p>Nomenclatura <strong>MPXX</strong>: 1ª cifra = camber max in % c; 2ª = posizione in decimi c; ultime due = spessore in % c.</p>
+
+      <div class="preset-row" id="preset-row"></div>
+    </div>
+
+    <div class="section">
+      <h3>Vista 2D del profilo</h3>
+      <svg class="airfoil-2d" id="airfoil-svg" viewBox="0 0 800 250" preserveAspectRatio="xMidYMid meet"></svg>
+      <label class="toggle-row">
+        <span>linea media (camber)</span>
+        <input type="checkbox" id="cb-camber" checked>
+        <span class="box"></span>
+      </label>
+      <label class="toggle-row">
+        <span>quota spessore</span>
+        <input type="checkbox" id="cb-thickness" checked>
+        <span class="box"></span>
+      </label>
+    </div>
+
+    <div class="section">
+      <h3>Proprietà geometriche</h3>
+      <div class="props">
+        <div class="k">spessore t/c</div><div class="v" id="prop-tc">—</div>
+        <div class="k">x at t<sub>max</sub></div><div class="v" id="prop-xt">—</div>
+        <div class="k">area / c²</div><div class="v" id="prop-area">—</div>
+        <div class="k">I<sub>x</sub> / c⁴</div><div class="v" id="prop-ix">—</div>
+      </div>
+      <p>I<sub>x</sub>/c⁴ è il momento d'inerzia del second'ordine adimensionalizzato rispetto all'asse della corda.</p>
+    </div>
+
+  </aside>
+
+  <main class="viewer">
+    <div class="bracket-bl"></div>
+    <div class="bracket-br"></div>
+    <div class="viewer-corner tl">
+      struttura alare<br/>
+      <strong id="corner-code">NACA 2412</strong>
+    </div>
+    <div class="viewer-corner tr">
+      scala 1:1<br/>
+      <span style="color: var(--ink);">vista assonometrica</span>
+    </div>
+    <div class="viewer-corner bl">
+      AR = <strong style="display:inline;" id="corner-ar">—</strong>
+      &nbsp;·&nbsp; λ = <strong style="display:inline;" id="corner-lambda">—</strong>
+    </div>
+    <div class="viewer-corner br">
+      drag · zoom · pan<br/>
+      <span style="color: var(--ink);">orbit controls</span>
+    </div>
+    <canvas id="viewer-canvas"></canvas>
+  </main>
+
+  <aside class="panel right">
+
+    <div class="section">
+      <h3>Vista esplosa <span class="ref">[exploded]</span></h3>
+      <div class="control">
+        <label>fattore esplosione <span class="val" id="lab-explode">0 %</span></label>
+        <input type="range" id="sl-explode" min="0" max="1" step="0.01" value="0" />
+      </div>
+      <div class="preset-row four">
+        <button class="preset-btn" data-exp="0">ASM</button>
+        <button class="preset-btn" data-exp="0.33">33%</button>
+        <button class="preset-btn" data-exp="0.66">66%</button>
+        <button class="preset-btn" data-exp="1">MAX</button>
+      </div>
+      <label class="toggle-row">
+        <span>linee guida</span>
+        <input type="checkbox" id="cb-guides" checked>
+        <span class="box"></span>
+      </label>
+      <p>Trascina il fattore a <strong>MAX</strong> per separare centine, longheroni, correnti e rivestimento.</p>
+    </div>
+
+    <div class="section">
+      <h3>Geometria alare</h3>
+      <div class="control">
+        <label>corda radice c<sub>root</sub> <span class="val" id="lab-cr">0.50 m</span></label>
+        <input type="range" id="sl-cr" min="0.20" max="0.80" step="0.01" value="0.50" />
+      </div>
+      <div class="control">
+        <label>corda tip c<sub>tip</sub> <span class="val" id="lab-ct">0.30 m</span></label>
+        <input type="range" id="sl-ct" min="0.10" max="0.80" step="0.01" value="0.30" />
+      </div>
+      <div class="control">
+        <label>semi-apertura b/2 <span class="val" id="lab-span">1.40 m</span></label>
+        <input type="range" id="sl-span" min="0.60" max="2.50" step="0.01" value="1.40" />
+      </div>
+      <div class="control">
+        <label>numero centine <span class="val" id="lab-ribs">8</span></label>
+        <input type="range" id="sl-ribs" min="3" max="16" step="1" value="8" />
+      </div>
+      <div class="props" style="margin-top: 8px;">
+        <div class="k">apertura b</div><div class="v" id="prop-b">—</div>
+        <div class="k">superficie S</div><div class="v" id="prop-s">—</div>
+        <div class="k">aspect ratio</div><div class="v" id="prop-ar">—</div>
+        <div class="k">rastremaz. λ</div><div class="v" id="prop-lambda">—</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Longheroni</h3>
+      <div class="control">
+        <label>long. anteriore <span class="val" id="lab-sf">20 % c</span></label>
+        <input type="range" id="sl-sf" min="0.10" max="0.40" step="0.01" value="0.20" />
+      </div>
+      <div class="control">
+        <label>long. posteriore <span class="val" id="lab-sr">65 % c</span></label>
+        <input type="range" id="sl-sr" min="0.50" max="0.85" step="0.01" value="0.65" />
+      </div>
+      <p>La regione tra i due longheroni costituisce la <strong>cassa alare</strong>: assorbe flessione e torsione.</p>
+    </div>
+
+    <div class="section">
+      <h3>Elementi visibili</h3>
+      <label class="toggle-row"><span>centine</span><input type="checkbox" id="cb-ribs" checked><span class="box"></span></label>
+      <label class="toggle-row"><span>longheroni</span><input type="checkbox" id="cb-spars" checked><span class="box"></span></label>
+      <label class="toggle-row"><span>correnti</span><input type="checkbox" id="cb-stringers" checked><span class="box"></span></label>
+      <label class="toggle-row"><span>rivestimento</span><input type="checkbox" id="cb-skin" checked><span class="box"></span></label>
+      <label class="toggle-row"><span>rotazione auto</span><input type="checkbox" id="cb-autorot"><span class="box"></span></label>
+    </div>
+
+  </aside>
+
+  <footer class="app-footer">
+    <span>biagio raucci · itis e. majorana · cassino</span>
+    <span class="equation">y_t = 5t[0.2969√x − 0.126x − 0.3516x² + 0.2843x³ − 0.1036x⁴]</span>
+    <span>v 1.0 · single-file</span>
+  </footer>
+
+</div>
+
+<!-- ============================================================
+     Three.js da CDN tramite import map (versione moderna ES6)
+     ============================================================ -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============================================================================
+//  NACA 4 cifre — Jacobs–Pinkerton (NACA Report 460)
+// ============================================================================
+function generateNACA4(code, n) {
+  n = n || 140;
+  const m = parseInt(code[0], 10) / 100;
+  const p = parseInt(code[1], 10) / 10;
+  const t = parseInt(code.slice(2), 10) / 100;
+  const a4 = 0.1036;
+
+  const yt = (x) => 5 * t * (0.2969 * Math.sqrt(x) - 0.126 * x
+    - 0.3516 * x * x + 0.2843 * x ** 3 - a4 * x ** 4);
+  const yc = (x) => {
+    if (m === 0 || p === 0) return 0;
+    if (x <= p) return (m / (p * p)) * (2 * p * x - x * x);
+    return (m / ((1 - p) ** 2)) * ((1 - 2 * p) + 2 * p * x - x * x);
+  };
+  const dyc = (x) => {
+    if (m === 0 || p === 0) return 0;
+    if (x <= p) return ((2 * m) / (p * p)) * (p - x);
+    return ((2 * m) / ((1 - p) ** 2)) * (p - x);
+  };
+
+  const upper = [], lower = [], camber = [];
+  for (let i = 0; i <= n; i++) {
+    const beta = (Math.PI * i) / n;
+    const x = 0.5 * (1 - Math.cos(beta));
+    const yth = yt(x);
+    const ych = yc(x);
+    const theta = Math.atan(dyc(x));
+    const s = Math.sin(theta), c = Math.cos(theta);
+    upper.push({ x: x - yth * s, y: ych + yth * c });
+    lower.push({ x: x + yth * s, y: ych - yth * c });
+    camber.push({ x, y: ych });
+  }
+  const contour = upper.slice().reverse().concat(lower.slice(1));
+  return { upper, lower, camber, contour, params: { m, p, t, code } };
+}
+
+function airfoilProperties(profile) {
+  const { upper, lower } = profile;
+  let area = 0, Ix = 0, maxThk = 0, xMaxThk = 0;
+  for (let i = 0; i < upper.length - 1; i++) {
+    const x0 = upper[i].x, x1 = upper[i + 1].x;
+    const yU0 = upper[i].y, yU1 = upper[i + 1].y;
+    const yL0 = lower[i].y, yL1 = lower[i + 1].y;
+    const dx = Math.abs(x1 - x0);
+    const h0 = yU0 - yL0, h1 = yU1 - yL1;
+    area += 0.5 * (h0 + h1) * dx;
+    const f0 = (yU0 ** 3 - yL0 ** 3) / 3;
+    const f1 = (yU1 ** 3 - yL1 ** 3) / 3;
+    Ix += 0.5 * (f0 + f1) * dx;
+    if (h0 > maxThk) { maxThk = h0; xMaxThk = x0; }
+  }
+  return { area_norm: area, Ix_norm: Ix, tMax: maxThk, xAtTMax: xMaxThk };
+}
+
+// ============================================================================
+//  STATE
+// ============================================================================
+const state = {
+  m: 2, p: 4, t: 12,
+  chordRoot: 0.50, chordTip: 0.30, span: 1.40, nRibs: 8,
+  sparFront: 0.20, sparRear: 0.65,
+  showRibs: true, showSpars: true, showStringers: true, showSkin: true,
+  showCamber: true, showThickness: true,
+  autoRotate: false,
+  explodeTarget: 0, explodeCurrent: 0,
+  showGuides: true,
+};
+
+const PRESETS = ['0009', '0012', '2412', '2415', '4412', '4415'];
+
+function currentCode() {
+  return `${state.m}${state.p}${String(state.t).padStart(2, '0')}`;
+}
+
+// ============================================================================
+//  PROFILO 2D — disegno SVG
+// ============================================================================
+const svgEl = document.getElementById('airfoil-svg');
+
+function draw2D() {
+  const W = 800, H = 250;
+  const padL = 40, padR = 40, padT = 30, padB = 50;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const sx = (x) => padL + x * plotW;
+  const sy = (y) => padT + (0.2 - y) * (plotH / 0.4);
+
+  const code = currentCode();
+  const prof = generateNACA4(code);
+  const { params } = prof;
+
+  const ticks = [0, 0.25, 0.5, 0.75, 1.0];
+  const pathContour = prof.contour.map((p, i) =>
+    `${i === 0 ? 'M' : 'L'} ${sx(p.x).toFixed(2)} ${sy(p.y).toFixed(2)}`
+  ).join(' ') + ' Z';
+  const pathCamber = prof.camber.map((p, i) =>
+    `${i === 0 ? 'M' : 'L'} ${sx(p.x).toFixed(2)} ${sy(p.y).toFixed(2)}`
+  ).join(' ');
+
+  const yCamMaxReal = (params.p > 0 && params.m > 0)
+    ? (params.m / (params.p * params.p)) * (2 * params.p * params.p - params.p * params.p)
+    : 0;
+
+  let thkQuote = '';
+  if (state.showThickness) {
+    const xt = 0.30;
+    const yU = prof.upper.find(p => p.x >= xt)?.y ?? 0;
+    const yL = prof.lower.find(p => p.x >= xt)?.y ?? 0;
+    const xPos = sx(xt);
+    const xQuote = sx(xt) - 22;
+    thkQuote = `
+      <line x1="${xQuote}" y1="${sy(yU)}" x2="${xQuote}" y2="${sy(yL)}"
+        stroke="var(--ink-soft)" stroke-width="0.8"
+        marker-start="url(#arrowS)" marker-end="url(#arrowE)"/>
+      <line x1="${xQuote - 4}" y1="${sy(yU)}" x2="${xPos}" y2="${sy(yU)}"
+        stroke="var(--ink-soft)" stroke-width="0.5" stroke-dasharray="2 2"/>
+      <line x1="${xQuote - 4}" y1="${sy(yL)}" x2="${xPos}" y2="${sy(yL)}"
+        stroke="var(--ink-soft)" stroke-width="0.5" stroke-dasharray="2 2"/>
+      <text x="${xQuote - 6}" y="${sy((yU + yL) / 2) + 3}"
+        text-anchor="end" font-family="JetBrains Mono" font-size="10"
+        fill="var(--ink-soft)" letter-spacing="0.1em">
+        t=${(params.t * 100).toFixed(0)}%
+      </text>
+    `;
+  }
+
+  let camberSvg = '';
+  if (state.showCamber && params.m > 0) {
+    camberSvg = `
+      <path d="${pathCamber}" fill="none" stroke="var(--accent)"
+        stroke-width="1.2" stroke-dasharray="6 3"/>
+      <circle cx="${sx(params.p)}" cy="${sy(yCamMaxReal)}" r="3" fill="var(--accent)"/>
+      <line x1="${sx(params.p)}" y1="${sy(0)}"
+        x2="${sx(params.p)}" y2="${sy(yCamMaxReal)}"
+        stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 3"/>
+      <text x="${sx(params.p) + 6}" y="${sy(yCamMaxReal / 2)}"
+        font-family="JetBrains Mono" font-size="9" fill="var(--accent)"
+        letter-spacing="0.1em">m=${(params.m * 100).toFixed(1)}%</text>
+    `;
+  }
+
+  svgEl.innerHTML = `
+    <defs>
+      <pattern id="grid2d" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none"
+          stroke="rgba(13,34,64,0.06)" stroke-width="1"/>
+      </pattern>
+      <marker id="arrowS" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M 6 0 L 0 3 L 6 6 Z" fill="var(--ink-soft)"/>
+      </marker>
+      <marker id="arrowE" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M 0 0 L 6 3 L 0 6 Z" fill="var(--ink-soft)"/>
+      </marker>
+    </defs>
+    <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="url(#grid2d)"/>
+    <line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(0)}"
+      stroke="var(--ink-pale)" stroke-width="0.8" stroke-dasharray="4 4"/>
+    ${ticks.map(tk => `
+      <line x1="${sx(tk)}" y1="${sy(0) - 4}" x2="${sx(tk)}" y2="${sy(0) + 4}"
+        stroke="var(--ink-pale)" stroke-width="0.8"/>
+      <text x="${sx(tk)}" y="${H - padB + 18}" text-anchor="middle"
+        font-family="JetBrains Mono" font-size="10" fill="var(--ink-pale)"
+        letter-spacing="0.1em">${(tk * 100).toFixed(0)}%</text>
+    `).join('')}
+    <text x="${sx(0)}" y="${padT - 8}" text-anchor="start"
+      font-family="JetBrains Mono" font-size="9" fill="var(--ink)"
+      letter-spacing="0.2em">L.E.</text>
+    <text x="${sx(1)}" y="${padT - 8}" text-anchor="end"
+      font-family="JetBrains Mono" font-size="9" fill="var(--ink)"
+      letter-spacing="0.2em">T.E.</text>
+    ${camberSvg}
+    <path d="${pathContour}" fill="rgba(13,34,64,0.08)" stroke="var(--ink)"
+      stroke-width="1.4" stroke-linejoin="round"/>
+    ${thkQuote}
+    <g transform="translate(${W - padR - 90}, ${H - padB - 8})">
+      <rect x="0" y="-22" width="90" height="20" fill="none"
+        stroke="var(--ink)" stroke-width="0.8"/>
+      <text x="45" y="-8" text-anchor="middle"
+        font-family="Major Mono Display" font-size="13"
+        fill="var(--ink)" letter-spacing="0.15em">${params.code}</text>
+    </g>
+  `;
+
+  // aggiorna proprietà
+  const props = airfoilProperties(prof);
+  document.getElementById('prop-tc').textContent = (props.tMax * 100).toFixed(2) + ' %';
+  document.getElementById('prop-xt').textContent = (props.xAtTMax * 100).toFixed(1) + ' % c';
+  document.getElementById('prop-area').textContent = props.area_norm.toFixed(4);
+  document.getElementById('prop-ix').textContent = props.Ix_norm.toExponential(2);
+}
+
+// ============================================================================
+//  THREE.JS — scena 3D
+// ============================================================================
+const canvas = document.getElementById('viewer-canvas');
+const viewer = canvas.parentElement;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#f4ede0');
+scene.fog = new THREE.Fog('#f4ede0', 6, 12);
+
+const camera = new THREE.PerspectiveCamera(38,
+  viewer.clientWidth / viewer.clientHeight, 0.05, 50);
+camera.position.set(2.0, 1.3, 2.5);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight, false);
+renderer.shadowMap.enabled = true;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+dirLight.position.set(3, 4, 2);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+scene.add(dirLight);
+const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.35);
+dirLight2.position.set(-2, 1, -3);
+scene.add(dirLight2);
+
+const grid = new THREE.GridHelper(6, 24, 0x0d2240, 0x6a82a8);
+grid.position.y = -0.5;
+scene.add(grid);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enablePan = true; controls.enableZoom = true; controls.enableRotate = true;
+controls.minDistance = 0.6; controls.maxDistance = 6;
+controls.target.set(0, 0, 0);
+
+// ----------- Wing assembly group ------------
+const wingGroup = new THREE.Group();
+scene.add(wingGroup);
+
+// ----------- Materials (riutilizzati) -------
+const matRib = new THREE.MeshStandardMaterial({
+  color: 0xd9cdb0, side: THREE.DoubleSide, roughness: 0.7, metalness: 0.15
+});
+const matSpar = new THREE.MeshStandardMaterial({
+  color: 0x9c3a25, roughness: 0.4, metalness: 0.6
+});
+const matStringer = new THREE.MeshStandardMaterial({
+  color: 0x5a7aa8, roughness: 0.4, metalness: 0.7
+});
+const matSkin = new THREE.MeshStandardMaterial({
+  color: 0xaabfdc, transparent: true, opacity: 0.22,
+  side: THREE.DoubleSide, roughness: 0.3, metalness: 0.5, depthWrite: false
+});
+const matEdges = new THREE.LineBasicMaterial({ color: 0x0d2240 });
+const matGuide = new THREE.LineDashedMaterial({
+  color: 0xb8412c, dashSize: 0.02, gapSize: 0.015,
+  transparent: true, opacity: 0
+});
+
+// ============================================================================
+//  Costruzione geometria
+// ============================================================================
+const easeSmooth = (t) => t * t * (3 - 2 * t);
+
+function buildRibShape(profile, chord) {
+  const shape = new THREE.Shape();
+  const c = profile.contour;
+  shape.moveTo(c[0].x * chord, c[0].y * chord);
+  for (let i = 1; i < c.length; i++) shape.lineTo(c[i].x * chord, c[i].y * chord);
+  shape.closePath();
+  for (const xFrac of [0.22, 0.36, 0.5]) {
+    const yU = profile.upper.find(p => p.x >= xFrac)?.y ?? 0;
+    const yL = profile.lower.find(p => p.x >= xFrac)?.y ?? 0;
+    const thk = yU - yL;
+    if (thk < 0.10) continue;
+    const r = 0.30 * thk * chord;
+    const cx = xFrac * chord, cy = 0.5 * (yU + yL) * chord;
+    const hole = new THREE.Path();
+    hole.absarc(cx, cy, r, 0, Math.PI * 2, true);
+    shape.holes.push(hole);
+  }
+  return shape;
+}
+
+function makeRib(profile, chord, yPos) {
+  const thickness = 0.008;
+  const shape = buildRibShape(profile, chord);
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: thickness, bevelEnabled: false, curveSegments: 24
+  });
+  geo.rotateX(-Math.PI / 2);
+  geo.translate(0, yPos - thickness / 2, 0);
+  const mesh = new THREE.Mesh(geo, matRib);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  // bordo
+  const edges = new THREE.EdgesGeometry(geo, 20);
+  const line = new THREE.LineSegments(edges, matEdges);
+  mesh.add(line);
+  // resetto la trasformazione delle line rispetto al parent (geometria già traslata)
+  return mesh;
+}
+
+function makeSpar(profile, chordRoot, chordTip, span, xFrac) {
+  const yU = profile.upper.find(p => p.x >= xFrac)?.y ?? 0;
+  const yL = profile.lower.find(p => p.x >= xFrac)?.y ?? 0;
+  const thk = yU - yL;
+  const hRoot = 0.75 * thk * chordRoot;
+  const hTip  = 0.75 * thk * chordTip;
+  const w = 0.012;
+
+  const xRoot = xFrac * chordRoot, xTip = xFrac * chordTip;
+  const zRoot = 0.5 * (yU + yL) * chordRoot, zTip = 0.5 * (yU + yL) * chordTip;
+  const v = [], idx = [];
+  const pf = (p1, p2, p3, p4) => {
+    const b = v.length / 3;
+    v.push(...p1, ...p2, ...p3, ...p4);
+    idx.push(b, b+1, b+2, b, b+2, b+3);
+  };
+  const rAS = [xRoot - w/2, 0, zRoot + hRoot/2], rAI = [xRoot - w/2, 0, zRoot - hRoot/2];
+  const rPS = [xRoot + w/2, 0, zRoot + hRoot/2], rPI = [xRoot + w/2, 0, zRoot - hRoot/2];
+  const tAS = [xTip - w/2, span, zTip + hTip/2], tAI = [xTip - w/2, span, zTip - hTip/2];
+  const tPS = [xTip + w/2, span, zTip + hTip/2], tPI = [xTip + w/2, span, zTip - hTip/2];
+  pf(rAS, tAS, tAI, rAI); pf(rPI, tPI, tPS, rPS);
+  pf(rAS, rPS, tPS, tAS); pf(rAI, tAI, tPI, rPI);
+  pf(rAS, rAI, rPI, rPS); pf(tAS, tPS, tPI, tAI);
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+
+  const mesh = new THREE.Mesh(geo, matSpar);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  const edges = new THREE.EdgesGeometry(geo, 15);
+  const line = new THREE.LineSegments(edges, matEdges);
+  mesh.add(line);
+  return mesh;
+}
+
+function makeStringer(profile, chordRoot, chordTip, span, xFrac, surface) {
+  const pt = surface === 'upper'
+    ? profile.upper.find(p => p.x >= xFrac)
+    : profile.lower.find(p => p.x >= xFrac);
+  if (!pt) return null;
+
+  const xR = pt.x * chordRoot, zR = pt.y * chordRoot;
+  const xT = pt.x * chordTip, zT = pt.y * chordTip;
+  const r = 0.003;
+
+  const start = new THREE.Vector3(xR, 0, zR);
+  const end = new THREE.Vector3(xT, span, zT);
+  const dir = new THREE.Vector3().subVectors(end, start);
+  const length = dir.length();
+  const geo = new THREE.CylinderGeometry(r, r, length, 8);
+  geo.translate(0, length / 2, 0);
+  const q = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0), dir.clone().normalize()
+  );
+  geo.applyQuaternion(q);
+  geo.translate(start.x, start.y, start.z);
+
+  const mesh = new THREE.Mesh(geo, matStringer);
+  mesh.castShadow = true;
+  return mesh;
+}
+
+function makeSkinHalf(profile, chordRoot, chordTip, span, side) {
+  const C = side === 'upper' ? profile.upper : profile.lower;
+  const N = C.length;
+  const verts = [], idx = [];
+  for (let k = 0; k < N; k++) verts.push(C[k].x * chordRoot, 0, C[k].y * chordRoot);
+  for (let k = 0; k < N; k++) verts.push(C[k].x * chordTip, span, C[k].y * chordTip);
+  for (let k = 0; k < N - 1; k++) {
+    const a = k, b = k + 1, c = k + N, d = k + 1 + N;
+    idx.push(a, b, d, a, d, c);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, matSkin);
+}
+
+// ----------- Axes -------------
+function makeAxes() {
+  const L = 0.4;
+  const group = new THREE.Group();
+  group.position.set(-0.15, -0.15, -0.15);
+  const make = (p1, p2) => {
+    const g = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(...p1), new THREE.Vector3(...p2)
+    ]);
+    return new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x0d2240 }));
+  };
+  group.add(make([0,0,0], [L,0,0]));
+  group.add(make([0,0,0], [0,L,0]));
+  group.add(make([0,0,0], [0,0,L]));
+  return group;
+}
+
+// ============================================================================
+//  Ricostruzione totale della scena ad ogni cambio parametri.
+//  È O(n) sui pezzi ma rapido per i valori di didattica.
+// ============================================================================
+let ribMeshes = [];      // riferimenti per applicare l'offset di esplosione
+let sparMeshes = [];
+let stringerMeshesUpper = [];
+let stringerMeshesLower = [];
+let skinUpperMesh = null;
+let skinLowerMesh = null;
+let guideLines = [];
+let ribGuideData = [];   // {x, y0, z, dyMax} per ricalcolo guide
+
+function disposeChildren(group) {
+  for (let i = group.children.length - 1; i >= 0; i--) {
+    const child = group.children[i];
+    group.remove(child);
+    if (child.geometry) child.geometry.dispose();
+    // children (es. EdgesGeometry) hanno la loro geometry
+    for (const sub of (child.children || [])) {
+      if (sub.geometry) sub.geometry.dispose();
+    }
+  }
+}
+
+function rebuildWing() {
+  disposeChildren(wingGroup);
+  ribMeshes = []; sparMeshes = [];
+  stringerMeshesUpper = []; stringerMeshesLower = [];
+  skinUpperMesh = null; skinLowerMesh = null;
+  guideLines = []; ribGuideData = [];
+
+  const profile = generateNACA4(currentCode());
+  const cr = state.chordRoot, ct = state.chordTip, span = state.span;
+  const cx = (cr + ct) / 4, cy = span / 2;
+
+  // gruppo "centrato"
+  const inner = new THREE.Group();
+  inner.position.set(0, -cy, 0);
+  wingGroup.position.set(-cx, 0, 0);
+
+  const chordAt = (y) => cr + (ct - cr) * (y / span);
+
+  // CENTINE
+  if (state.showRibs) {
+    for (let i = 0; i < state.nRibs; i++) {
+      const y = (i / (state.nRibs - 1)) * span;
+      const dyMax = 0.18 * (i / Math.max(1, state.nRibs - 1)) * span + 0.04 * i;
+      const mesh = makeRib(profile, chordAt(y), y);
+      mesh.userData.dyMax = dyMax;
+      mesh.userData.y0 = y;
+      inner.add(mesh);
+      ribMeshes.push(mesh);
+      ribGuideData.push({ x: chordAt(y) * 0.5, y0: y, z: 0, dyMax });
+    }
+    // guide lines (una per centina, riusiamo geometrie semplici)
+    for (let i = 0; i < state.nRibs; i++) {
+      const r = ribGuideData[i];
+      const g = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(r.x, r.y0, r.z),
+        new THREE.Vector3(r.x, r.y0, r.z),
+      ]);
+      const mat = matGuide.clone();
+      const line = new THREE.Line(g, mat);
+      line.computeLineDistances();
+      line.visible = false;
+      inner.add(line);
+      guideLines.push(line);
+    }
+  }
+
+  // LONGHERONI
+  if (state.showSpars) {
+    const sf = makeSpar(profile, cr, ct, span, state.sparFront);
+    const sr = makeSpar(profile, cr, ct, span, state.sparRear);
+    sparMeshes.push(sf, sr);
+    inner.add(sf, sr);
+  }
+
+  // CORRENTI
+  if (state.showStringers) {
+    const xs = [0.20, 0.40, 0.60, 0.78];
+    for (const xF of xs) {
+      const u = makeStringer(profile, cr, ct, span, xF, 'upper');
+      const l = makeStringer(profile, cr, ct, span, xF, 'lower');
+      if (u) { stringerMeshesUpper.push(u); inner.add(u); }
+      if (l) { stringerMeshesLower.push(l); inner.add(l); }
+    }
+  }
+
+  // RIVESTIMENTO
+  if (state.showSkin) {
+    skinUpperMesh = makeSkinHalf(profile, cr, ct, span, 'upper');
+    skinLowerMesh = makeSkinHalf(profile, cr, ct, span, 'lower');
+    inner.add(skinUpperMesh, skinLowerMesh);
+  }
+
+  inner.add(makeAxes());
+  wingGroup.add(inner);
+
+  applyExplodeOffsets();
+}
+
+// ============================================================================
+//  Applicazione degli offset di esplosione (chiamata ad ogni frame)
+// ============================================================================
+function applyExplodeOffsets() {
+  const eT = easeSmooth(Math.max(0, Math.min(1, state.explodeCurrent)));
+
+  // centine: traslazione lungo y proporzionale alla loro posizione
+  for (const m of ribMeshes) {
+    m.position.set(0, m.userData.dyMax * eT, 0);
+  }
+  // guide lines
+  if (state.showGuides && state.showRibs) {
+    for (let i = 0; i < guideLines.length; i++) {
+      const r = ribGuideData[i];
+      const dy = r.dyMax * eT;
+      const positions = new Float32Array([r.x, r.y0, r.z, r.x, r.y0 + dy, r.z]);
+      guideLines[i].geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      guideLines[i].computeLineDistances();
+      guideLines[i].material.opacity = Math.min(1, eT * 1.5);
+      guideLines[i].visible = eT > 0.05;
+    }
+  } else {
+    for (const g of guideLines) g.visible = false;
+  }
+
+  // longheroni: ant. avanti (-x), post. indietro (+x); con z opposte
+  if (sparMeshes.length >= 2) {
+    sparMeshes[0].position.set(-0.25 * eT, 0, 0.12 * eT);
+    sparMeshes[1].position.set(0.25 * eT, 0, -0.12 * eT);
+  }
+  // correnti: estradosso +z, intradosso -z
+  for (const m of stringerMeshesUpper) m.position.set(0, 0, 0.22 * eT);
+  for (const m of stringerMeshesLower) m.position.set(0, 0, -0.22 * eT);
+
+  // rivestimento: due metà separate lungo z
+  if (skinUpperMesh) skinUpperMesh.position.set(0, 0, 0.45 * eT);
+  if (skinLowerMesh) skinLowerMesh.position.set(0, 0, -0.45 * eT);
+}
+
+// ============================================================================
+//  Loop di rendering
+// ============================================================================
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, clock.getDelta());
+
+  if (state.autoRotate) wingGroup.rotation.y += dt * 0.25;
+
+  // filtro del primo ordine sull'esplosione (τ = 0.35 s)
+  const tau = 0.35;
+  const alpha = 1 - Math.exp(-dt / tau);
+  const next = state.explodeCurrent + alpha * (state.explodeTarget - state.explodeCurrent);
+  if (Math.abs(next - state.explodeCurrent) > 1e-5) {
+    state.explodeCurrent = next;
+    applyExplodeOffsets();
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// resize
+window.addEventListener('resize', () => {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+});
+
+// ============================================================================
+//  PANEL UPDATES e bindings
+// ============================================================================
+function updateLabels() {
+  const code = currentCode();
+  document.getElementById('naca-code').textContent = code;
+  document.getElementById('corner-code').textContent = 'NACA ' + code;
+  document.getElementById('lab-m').textContent = state.m + ' %';
+  document.getElementById('lab-p').textContent = state.p === 0 ? '—' : (state.p * 10) + ' %';
+  document.getElementById('lab-t').textContent = String(state.t).padStart(2, '0') + ' %';
+  document.getElementById('lab-cr').textContent = state.chordRoot.toFixed(2) + ' m';
+  document.getElementById('lab-ct').textContent = state.chordTip.toFixed(2) + ' m';
+  document.getElementById('lab-span').textContent = state.span.toFixed(2) + ' m';
+  document.getElementById('lab-ribs').textContent = state.nRibs;
+  document.getElementById('lab-sf').textContent = (state.sparFront * 100).toFixed(0) + ' % c';
+  document.getElementById('lab-sr').textContent = (state.sparRear * 100).toFixed(0) + ' % c';
+  document.getElementById('lab-explode').textContent = (state.explodeTarget * 100).toFixed(0) + ' %';
+
+  document.getElementById('sl-p').disabled = (state.m === 0);
+
+  const bFull = 2 * state.span;
+  const meanChord = (state.chordRoot + state.chordTip) / 2;
+  const S = 2 * state.span * meanChord;
+  const AR = (bFull * bFull) / S;
+  const taper = state.chordTip / state.chordRoot;
+  document.getElementById('prop-b').textContent = bFull.toFixed(2) + ' m';
+  document.getElementById('prop-s').textContent = S.toFixed(3) + ' m²';
+  document.getElementById('prop-ar').textContent = AR.toFixed(2);
+  document.getElementById('prop-lambda').textContent = taper.toFixed(2);
+  document.getElementById('corner-ar').textContent = AR.toFixed(2);
+  document.getElementById('corner-lambda').textContent = taper.toFixed(2);
+
+  // preset highlight
+  document.querySelectorAll('#preset-row .preset-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.code === code);
+  });
+}
+
+function refreshAll(rebuild = true) {
+  updateLabels();
+  draw2D();
+  if (rebuild) rebuildWing();
+}
+
+// ----------- bindings ---------
+function bindRange(id, key, parser = parseFloat, rebuild = true) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => {
+    state[key] = parser(el.value);
+    refreshAll(rebuild);
+  });
+}
+function bindCheck(id, key, rebuild = true) {
+  const el = document.getElementById(id);
+  el.addEventListener('change', () => {
+    state[key] = el.checked;
+    refreshAll(rebuild);
+  });
+}
+
+bindRange('sl-m', 'm', v => parseInt(v, 10));
+bindRange('sl-p', 'p', v => parseInt(v, 10));
+bindRange('sl-t', 't', v => parseInt(v, 10));
+bindRange('sl-cr', 'chordRoot');
+bindRange('sl-ct', 'chordTip');
+bindRange('sl-span', 'span');
+bindRange('sl-ribs', 'nRibs', v => parseInt(v, 10));
+bindRange('sl-sf', 'sparFront');
+bindRange('sl-sr', 'sparRear');
+
+// esplosione (non richiede rebuild, solo applicazione offset)
+document.getElementById('sl-explode').addEventListener('input', (e) => {
+  state.explodeTarget = parseFloat(e.target.value);
+  updateLabels();
+});
+
+// preset esplosione
+document.querySelectorAll('[data-exp]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.explodeTarget = parseFloat(btn.dataset.exp);
+    document.getElementById('sl-explode').value = state.explodeTarget;
+    updateLabels();
+  });
+});
+
+bindCheck('cb-camber', 'showCamber', false);
+bindCheck('cb-thickness', 'showThickness', false);
+bindCheck('cb-ribs', 'showRibs');
+bindCheck('cb-spars', 'showSpars');
+bindCheck('cb-stringers', 'showStringers');
+bindCheck('cb-skin', 'showSkin');
+bindCheck('cb-guides', 'showGuides', false);
+
+document.getElementById('cb-autorot').addEventListener('change', (e) => {
+  state.autoRotate = e.target.checked;
+});
+
+// preset profili NACA
+const presetRow = document.getElementById('preset-row');
+PRESETS.forEach(code => {
+  const btn = document.createElement('button');
+  btn.className = 'preset-btn';
+  btn.dataset.code = code;
+  btn.textContent = code;
+  btn.addEventListener('click', () => {
+    state.m = parseInt(code[0], 10);
+    state.p = parseInt(code[1], 10);
+    state.t = parseInt(code.slice(2), 10);
+    document.getElementById('sl-m').value = state.m;
+    document.getElementById('sl-p').value = state.p;
+    document.getElementById('sl-t').value = state.t;
+    refreshAll();
+  });
+  presetRow.appendChild(btn);
+});
+
+// inizializzazione
+refreshAll();
+
+</script>
+</body>
+</html>
