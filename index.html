@@ -222,6 +222,183 @@ html, body {
 }
 .panel::-webkit-scrollbar { width: 5px; }
 .panel::-webkit-scrollbar-thumb { background: var(--ink-pale); }
+
+/* ----------- Click-to-expand sul piccolo 2D ---------------- */
+.airfoil-wrap {
+  position: relative;
+  cursor: zoom-in;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.airfoil-wrap:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -8px rgba(13, 34, 64, 0.45);
+}
+.airfoil-wrap:hover .expand-hint { opacity: 1; }
+.expand-hint {
+  position: absolute;
+  top: 6px; right: 8px;
+  display: flex; align-items: center; gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--paper);
+  border: 1px solid var(--accent);
+  padding: 2px 6px;
+  opacity: 0;
+  transition: opacity .18s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+.expand-hint svg { width: 10px; height: 10px; }
+
+/* ----------- MODAL LIGHTBOX ------------ */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(13, 34, 64, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition:
+    background-color .35s ease,
+    backdrop-filter .35s ease,
+    opacity .35s ease,
+    visibility 0s linear .35s;
+}
+.modal-backdrop.open {
+  background: rgba(13, 34, 64, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 1; visibility: visible;
+  transition:
+    background-color .35s ease,
+    backdrop-filter .35s ease,
+    opacity .35s ease,
+    visibility 0s linear 0s;
+}
+.modal-card {
+  width: min(92vw, 1380px);
+  max-height: 92vh;
+  background: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border: 1.5px solid var(--ink);
+  box-shadow: 0 30px 80px -20px rgba(13, 34, 64, 0.65);
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  transform: scale(0.85) translateY(20px);
+  opacity: 0;
+  transition:
+    transform .42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity .35s ease;
+}
+.modal-backdrop.open .modal-card {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+.modal-card::before, .modal-card::after,
+.modal-card .mb-bl, .modal-card .mb-br {
+  content: ''; position: absolute; width: 28px; height: 28px;
+  border: 1.5px solid var(--ink); pointer-events: none;
+}
+.modal-card::before { top: 0; left: 0; border-right: none; border-bottom: none; }
+.modal-card::after  { top: 0; right: 0; border-left: none; border-bottom: none; }
+.modal-card .mb-bl  { bottom: 0; left: 0; border-right: none; border-top: none; }
+.modal-card .mb-br  { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px 12px;
+  border-bottom: 1.5px solid var(--ink);
+}
+.modal-title {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 17px; letter-spacing: 0.12em;
+  text-transform: lowercase; color: var(--ink);
+}
+.modal-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--ink-pale);
+  margin-top: 2px;
+}
+.modal-close {
+  width: 32px; height: 32px;
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  font-family: 'Major Mono Display', monospace;
+  font-size: 18px; line-height: 1;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover {
+  background: var(--accent); border-color: var(--accent); color: var(--paper);
+  transform: rotate(90deg);
+}
+.modal-body {
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 22px;
+  align-items: stretch;
+  overflow: auto;
+}
+.modal-airfoil-frame {
+  border: 1px solid var(--ink);
+  background: rgba(244, 237, 224, 0.5);
+  min-height: 0;
+  position: relative;
+}
+#airfoil-svg-large {
+  width: 100%; height: 100%;
+  display: block;
+}
+.modal-side {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.modal-side .section { margin: 0; }
+.modal-naca-big {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 48px; text-align: center; letter-spacing: 0.18em;
+  color: var(--ink); padding: 12px 0 8px;
+  border-top: 1px dashed var(--ink-pale);
+  border-bottom: 1px dashed var(--ink-pale);
+  position: relative;
+  transition: color .3s ease;
+}
+.modal-naca-big::before {
+  content: 'NACA'; position: absolute; top: -8px; left: 16px;
+  background: var(--paper); padding: 0 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 0.3em; color: var(--accent);
+}
+.modal-naca-big.pulse {
+  animation: pulseColor 0.45s ease;
+}
+@keyframes pulseColor {
+  0%   { color: var(--ink); }
+  40%  { color: var(--accent); }
+  100% { color: var(--ink); }
+}
+.modal-footer {
+  padding: 10px 22px;
+  border-top: 1.5px solid var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-pale);
+  display: flex; justify-content: space-between; gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .modal-body { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -265,7 +442,16 @@ html, body {
 
     <div class="section">
       <h3>Vista 2D del profilo</h3>
-      <svg class="airfoil-2d" id="airfoil-svg" viewBox="0 0 800 250" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="airfoil-wrap" id="airfoil-wrap" role="button" tabindex="0"
+           aria-label="Ingrandisci la vista 2D del profilo">
+        <svg class="airfoil-2d" id="airfoil-svg" viewBox="0 0 800 250" preserveAspectRatio="xMidYMid meet"></svg>
+        <span class="expand-hint">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M1 5 V1 H5 M11 5 V1 H7 M1 7 V11 H5 M11 7 V11 H7"/>
+          </svg>
+          ingrandisci
+        </span>
+      </div>
       <label class="toggle-row">
         <span>linea media (camber)</span>
         <input type="checkbox" id="cb-camber" checked>
@@ -394,6 +580,86 @@ html, body {
 </div>
 
 <!-- ============================================================
+     MODAL LIGHTBOX — vista 2D ingrandita
+     ============================================================ -->
+<div class="modal-backdrop" id="modal-backdrop" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="mb-bl"></div>
+    <div class="mb-br"></div>
+
+    <header class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">profilo · vista estesa</div>
+        <div class="modal-subtitle">naca 4-cifre · disegno tecnico didattico</div>
+      </div>
+      <button class="modal-close" id="modal-close" aria-label="Chiudi">×</button>
+    </header>
+
+    <div class="modal-body">
+      <div class="modal-airfoil-frame">
+        <svg id="airfoil-svg-large" viewBox="0 0 1400 600" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <aside class="modal-side">
+        <div class="section">
+          <h3>Profilo attivo</h3>
+          <div class="modal-naca-big" id="modal-naca-big">2412</div>
+
+          <div class="control">
+            <label>M · inarcatura max <span class="val" id="lab-m-modal">2 %</span></label>
+            <input type="range" id="sl-m-modal" min="0" max="9" step="1" value="2" />
+          </div>
+          <div class="control">
+            <label>P · pos. max inarcatura <span class="val" id="lab-p-modal">40 %</span></label>
+            <input type="range" id="sl-p-modal" min="0" max="9" step="1" value="4" />
+          </div>
+          <div class="control">
+            <label>XX · spessore max <span class="val" id="lab-t-modal">12 %</span></label>
+            <input type="range" id="sl-t-modal" min="6" max="24" step="1" value="12" />
+          </div>
+
+          <p style="margin-top: 10px;">Gli slider sono <strong>sincronizzati</strong> con quelli del pannello laterale: la modifica si riflette in tempo reale sia qui sia nella struttura 3D sotto.</p>
+        </div>
+
+        <div class="section">
+          <h3>Proprietà</h3>
+          <div class="props">
+            <div class="k">spessore t/c</div><div class="v" id="prop-tc-modal">—</div>
+            <div class="k">x at t<sub>max</sub></div><div class="v" id="prop-xt-modal">—</div>
+            <div class="k">area / c²</div><div class="v" id="prop-area-modal">—</div>
+            <div class="k">I<sub>x</sub> / c⁴</div><div class="v" id="prop-ix-modal">—</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Visualizzazione</h3>
+          <label class="toggle-row">
+            <span>linea media</span>
+            <input type="checkbox" id="cb-camber-modal" checked>
+            <span class="box"></span>
+          </label>
+          <label class="toggle-row">
+            <span>quota spessore</span>
+            <input type="checkbox" id="cb-thickness-modal" checked>
+            <span class="box"></span>
+          </label>
+          <label class="toggle-row">
+            <span>annotazioni didattiche</span>
+            <input type="checkbox" id="cb-annot" checked>
+            <span class="box"></span>
+          </label>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="modal-footer">
+      <span>esc · click sullo sfondo per chiudere</span>
+      <span>scala 1 : 1 · corda unitaria</span>
+    </footer>
+  </div>
+</div>
+
+<!-- ============================================================
      Three.js da CDN tramite import map (versione moderna ES6)
      ============================================================ -->
 <script type="importmap">
@@ -478,7 +744,10 @@ const state = {
   autoRotate: false,
   explodeTarget: 0, explodeCurrent: 0,
   showGuides: true,
+  showAnnotations: true,
 };
+
+const modalState = { open: false };
 
 const PRESETS = ['0009', '0012', '2412', '2415', '4412', '4415'];
 
@@ -487,13 +756,27 @@ function currentCode() {
 }
 
 // ============================================================================
-//  PROFILO 2D — disegno SVG
+//  PROFILO 2D — disegno SVG (riutilizzabile in piccolo e in grande)
 // ============================================================================
 const svgEl = document.getElementById('airfoil-svg');
+const svgElLarge = document.getElementById('airfoil-svg-large');
 
-function draw2D() {
-  const W = 800, H = 250;
-  const padL = 40, padR = 40, padT = 30, padB = 50;
+/**
+ * Disegna il profilo in un elemento <svg>.
+ * @param {SVGElement} target  - l'elemento svg di destinazione
+ * @param {object} opts        - { W, H, padding, annotations, idSuffix }
+ */
+function drawAirfoilSVG(target, opts) {
+  const W = opts.W;
+  const H = opts.H;
+  const padL = opts.padL ?? 40;
+  const padR = opts.padR ?? 40;
+  const padT = opts.padT ?? 30;
+  const padB = opts.padB ?? 50;
+  const annotations = opts.annotations ?? false;  // etichette didattiche estese
+  const idSfx = opts.idSuffix ?? '';
+  const fontScale = opts.fontScale ?? 1;
+
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
   const sx = (x) => padL + x * plotW;
@@ -515,92 +798,217 @@ function draw2D() {
     ? (params.m / (params.p * params.p)) * (2 * params.p * params.p - params.p * params.p)
     : 0;
 
+  const fs = (n) => (n * fontScale).toFixed(1);
+
+  // QUOTA SPESSORE
   let thkQuote = '';
   if (state.showThickness) {
     const xt = 0.30;
     const yU = prof.upper.find(p => p.x >= xt)?.y ?? 0;
     const yL = prof.lower.find(p => p.x >= xt)?.y ?? 0;
     const xPos = sx(xt);
-    const xQuote = sx(xt) - 22;
+    const xQuote = sx(xt) - (annotations ? 38 : 22);
     thkQuote = `
       <line x1="${xQuote}" y1="${sy(yU)}" x2="${xQuote}" y2="${sy(yL)}"
-        stroke="var(--ink-soft)" stroke-width="0.8"
-        marker-start="url(#arrowS)" marker-end="url(#arrowE)"/>
+        stroke="var(--ink-soft)" stroke-width="${annotations ? 1.2 : 0.8}"
+        marker-start="url(#arrowS${idSfx})" marker-end="url(#arrowE${idSfx})"/>
       <line x1="${xQuote - 4}" y1="${sy(yU)}" x2="${xPos}" y2="${sy(yU)}"
         stroke="var(--ink-soft)" stroke-width="0.5" stroke-dasharray="2 2"/>
       <line x1="${xQuote - 4}" y1="${sy(yL)}" x2="${xPos}" y2="${sy(yL)}"
         stroke="var(--ink-soft)" stroke-width="0.5" stroke-dasharray="2 2"/>
       <text x="${xQuote - 6}" y="${sy((yU + yL) / 2) + 3}"
-        text-anchor="end" font-family="JetBrains Mono" font-size="10"
+        text-anchor="end" font-family="JetBrains Mono" font-size="${fs(10)}"
         fill="var(--ink-soft)" letter-spacing="0.1em">
         t=${(params.t * 100).toFixed(0)}%
       </text>
     `;
   }
 
+  // LINEA MEDIA
   let camberSvg = '';
   if (state.showCamber && params.m > 0) {
     camberSvg = `
       <path d="${pathCamber}" fill="none" stroke="var(--accent)"
-        stroke-width="1.2" stroke-dasharray="6 3"/>
-      <circle cx="${sx(params.p)}" cy="${sy(yCamMaxReal)}" r="3" fill="var(--accent)"/>
+        stroke-width="${annotations ? 1.6 : 1.2}" stroke-dasharray="6 3"/>
+      <circle cx="${sx(params.p)}" cy="${sy(yCamMaxReal)}" r="${annotations ? 4 : 3}" fill="var(--accent)"/>
       <line x1="${sx(params.p)}" y1="${sy(0)}"
         x2="${sx(params.p)}" y2="${sy(yCamMaxReal)}"
         stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 3"/>
       <text x="${sx(params.p) + 6}" y="${sy(yCamMaxReal / 2)}"
-        font-family="JetBrains Mono" font-size="9" fill="var(--accent)"
+        font-family="JetBrains Mono" font-size="${fs(9)}" fill="var(--accent)"
         letter-spacing="0.1em">m=${(params.m * 100).toFixed(1)}%</text>
     `;
   }
 
-  svgEl.innerHTML = `
+  // ANNOTAZIONI DIDATTICHE ESTESE (solo modal grande)
+  let extraAnnot = '';
+  if (annotations) {
+    // Riferimenti sul profilo
+    const yU07 = prof.upper.find(p => p.x >= 0.70)?.y ?? 0;
+    const yL55 = prof.lower.find(p => p.x >= 0.55)?.y ?? 0;
+    const xLE = sx(0), yLEp = sy(0);
+    const xTE = sx(1), yTEp = sy(0);
+
+    // Box di ingombro etichette laterali (in alto, fuori dal profilo)
+    // Posizionate DENTRO il viewBox per evitare clipping.
+    const labelY = padT - 38;     // riga superiore con il nome italiano
+    const subY   = padT - 22;     // riga inferiore con il termine inglese
+
+    extraAnnot = `
+      <!-- BORDO D'ATTACCO: callout sopra il LE, dentro il viewBox -->
+      <line x1="${xLE}" y1="${yLEp - 4}" x2="${xLE}" y2="${labelY + 12}"
+        stroke="var(--ink)" stroke-width="0.9"/>
+      <line x1="${xLE}" y1="${labelY + 12}" x2="${xLE + 8}" y2="${labelY + 12}"
+        stroke="var(--ink)" stroke-width="0.9"/>
+      <circle cx="${xLE}" cy="${yLEp}" r="2.8" fill="var(--ink)"/>
+      <text x="${xLE + 12}" y="${labelY + 7}" text-anchor="start"
+        font-family="JetBrains Mono" font-size="${fs(10)}" fill="var(--ink)"
+        letter-spacing="0.16em" font-weight="700">BORDO D'ATTACCO</text>
+      <text x="${xLE + 12}" y="${labelY + 19}" text-anchor="start"
+        font-family="JetBrains Mono" font-size="${fs(8.5)}" fill="var(--ink-pale)"
+        letter-spacing="0.1em">leading edge · x = 0</text>
+
+      <!-- BORDO D'USCITA: callout simmetrica -->
+      <line x1="${xTE}" y1="${yTEp - 4}" x2="${xTE}" y2="${labelY + 12}"
+        stroke="var(--ink)" stroke-width="0.9"/>
+      <line x1="${xTE}" y1="${labelY + 12}" x2="${xTE - 8}" y2="${labelY + 12}"
+        stroke="var(--ink)" stroke-width="0.9"/>
+      <circle cx="${xTE}" cy="${yTEp}" r="2.8" fill="var(--ink)"/>
+      <text x="${xTE - 12}" y="${labelY + 7}" text-anchor="end"
+        font-family="JetBrains Mono" font-size="${fs(10)}" fill="var(--ink)"
+        letter-spacing="0.16em" font-weight="700">BORDO D'USCITA</text>
+      <text x="${xTE - 12}" y="${labelY + 19}" text-anchor="end"
+        font-family="JetBrains Mono" font-size="${fs(8.5)}" fill="var(--ink-pale)"
+        letter-spacing="0.1em">trailing edge · x = c</text>
+
+      <!-- ESTRADOSSO: leader sopra al profilo, posizione 65% c (lontano da linea media e da t) -->
+      <line x1="${sx(0.65)}" y1="${sy(yU07) - 3}"
+            x2="${sx(0.65)}" y2="${sy(yU07) - 70}"
+        stroke="var(--ink-soft)" stroke-width="0.7" stroke-dasharray="2 2"/>
+      <text x="${sx(0.65)}" y="${sy(yU07) - 76}" text-anchor="middle"
+        font-family="JetBrains Mono" font-size="${fs(9.5)}" fill="var(--ink-soft)"
+        letter-spacing="0.18em" font-weight="600">ESTRADOSSO</text>
+      <text x="${sx(0.65)}" y="${sy(yU07) - 88}" text-anchor="middle"
+        font-family="JetBrains Mono" font-size="${fs(8)}" fill="var(--ink-pale)"
+        letter-spacing="0.1em">upper surface</text>
+
+      <!-- INTRADOSSO: leader sotto al profilo -->
+      <line x1="${sx(0.55)}" y1="${sy(yL55) + 3}"
+            x2="${sx(0.55)}" y2="${sy(yL55) + 32}"
+        stroke="var(--ink-soft)" stroke-width="0.7" stroke-dasharray="2 2"/>
+      <text x="${sx(0.55)}" y="${sy(yL55) + 45}" text-anchor="middle"
+        font-family="JetBrains Mono" font-size="${fs(9.5)}" fill="var(--ink-soft)"
+        letter-spacing="0.18em" font-weight="600">INTRADOSSO</text>
+      <text x="${sx(0.55)}" y="${sy(yL55) + 57}" text-anchor="middle"
+        font-family="JetBrains Mono" font-size="${fs(8)}" fill="var(--ink-pale)"
+        letter-spacing="0.1em">lower surface</text>
+
+      <!-- LINEA MEDIA: callout in alto sopra al punto di massima inarcatura.
+           Sale per ~55 px e poi piega a destra, in posizione neutra
+           senza sovrapporsi alle altre annotazioni. -->
+      ${state.showCamber && params.m > 0 ? `
+        <line x1="${sx(params.p)}" y1="${sy(yCamMaxReal)}"
+              x2="${sx(params.p)}" y2="${sy(yCamMaxReal) - 55}"
+          stroke="var(--accent)" stroke-width="0.8"/>
+        <line x1="${sx(params.p)}" y1="${sy(yCamMaxReal) - 55}"
+              x2="${sx(params.p) + 90}" y2="${sy(yCamMaxReal) - 55}"
+          stroke="var(--accent)" stroke-width="0.8"/>
+        <text x="${sx(params.p) + 95}" y="${sy(yCamMaxReal) - 58}"
+          font-family="JetBrains Mono" font-size="${fs(10)}" fill="var(--accent)"
+          letter-spacing="0.16em" font-weight="700">LINEA MEDIA</text>
+        <text x="${sx(params.p) + 95}" y="${sy(yCamMaxReal) - 46}"
+          font-family="JetBrains Mono" font-size="${fs(8.5)}" fill="var(--accent)"
+          letter-spacing="0.1em" opacity="0.75">mean camber line</text>
+      ` : ''}
+
+      <!-- CORDA c: etichetta sotto i tick di percentuale -->
+      <line x1="${sx(0.42)}" y1="${H - padB + 36}" x2="${sx(0.58)}" y2="${H - padB + 36}"
+        stroke="var(--ink-soft)" stroke-width="0.7" stroke-dasharray="3 3"/>
+      <text x="${sx(0.5)}" y="${H - padB + 32}" text-anchor="middle"
+        font-family="JetBrains Mono" font-size="${fs(10)}" fill="var(--ink-soft)"
+        letter-spacing="0.24em" font-weight="700">CORDA  c</text>
+    `;
+  }
+
+  // grid pattern id univoco per evitare collisioni
+  target.innerHTML = `
     <defs>
-      <pattern id="grid2d" width="20" height="20" patternUnits="userSpaceOnUse">
+      <pattern id="grid2d${idSfx}" width="20" height="20" patternUnits="userSpaceOnUse">
         <path d="M 20 0 L 0 0 0 20" fill="none"
           stroke="rgba(13,34,64,0.06)" stroke-width="1"/>
       </pattern>
-      <marker id="arrowS" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <marker id="arrowS${idSfx}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
         <path d="M 6 0 L 0 3 L 6 6 Z" fill="var(--ink-soft)"/>
       </marker>
-      <marker id="arrowE" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <marker id="arrowE${idSfx}" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
         <path d="M 0 0 L 6 3 L 0 6 Z" fill="var(--ink-soft)"/>
       </marker>
+      <marker id="arrowEnd${idSfx}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M 0 0 L 7 3.5 L 0 7 Z" fill="var(--ink)"/>
+      </marker>
     </defs>
-    <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="url(#grid2d)"/>
+    <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="url(#grid2d${idSfx})"/>
     <line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(0)}"
-      stroke="var(--ink-pale)" stroke-width="0.8" stroke-dasharray="4 4"/>
+      stroke="var(--ink-pale)" stroke-width="${annotations ? 1 : 0.8}" stroke-dasharray="4 4"/>
     ${ticks.map(tk => `
       <line x1="${sx(tk)}" y1="${sy(0) - 4}" x2="${sx(tk)}" y2="${sy(0) + 4}"
         stroke="var(--ink-pale)" stroke-width="0.8"/>
       <text x="${sx(tk)}" y="${H - padB + 18}" text-anchor="middle"
-        font-family="JetBrains Mono" font-size="10" fill="var(--ink-pale)"
+        font-family="JetBrains Mono" font-size="${fs(10)}" fill="var(--ink-pale)"
         letter-spacing="0.1em">${(tk * 100).toFixed(0)}%</text>
     `).join('')}
-    <text x="${sx(0)}" y="${padT - 8}" text-anchor="start"
-      font-family="JetBrains Mono" font-size="9" fill="var(--ink)"
-      letter-spacing="0.2em">L.E.</text>
-    <text x="${sx(1)}" y="${padT - 8}" text-anchor="end"
-      font-family="JetBrains Mono" font-size="9" fill="var(--ink)"
-      letter-spacing="0.2em">T.E.</text>
+    ${annotations ? '' : `
+      <text x="${sx(0)}" y="${padT - 8}" text-anchor="start"
+        font-family="JetBrains Mono" font-size="${fs(9)}" fill="var(--ink)"
+        letter-spacing="0.2em">L.E.</text>
+      <text x="${sx(1)}" y="${padT - 8}" text-anchor="end"
+        font-family="JetBrains Mono" font-size="${fs(9)}" fill="var(--ink)"
+        letter-spacing="0.2em">T.E.</text>
+    `}
+    ${extraAnnot}
     ${camberSvg}
     <path d="${pathContour}" fill="rgba(13,34,64,0.08)" stroke="var(--ink)"
-      stroke-width="1.4" stroke-linejoin="round"/>
+      stroke-width="${annotations ? 1.8 : 1.4}" stroke-linejoin="round"/>
     ${thkQuote}
-    <g transform="translate(${W - padR - 90}, ${H - padB - 8})">
-      <rect x="0" y="-22" width="90" height="20" fill="none"
+    <g transform="translate(${W - padR - 100}, ${H - padB - 10})">
+      <rect x="0" y="-24" width="100" height="22" fill="none"
         stroke="var(--ink)" stroke-width="0.8"/>
-      <text x="45" y="-8" text-anchor="middle"
-        font-family="Major Mono Display" font-size="13"
+      <text x="50" y="-9" text-anchor="middle"
+        font-family="Major Mono Display" font-size="${fs(14)}"
         fill="var(--ink)" letter-spacing="0.15em">${params.code}</text>
     </g>
   `;
 
-  // aggiorna proprietà
+  return prof;
+}
+
+function draw2D() {
+  const prof = drawAirfoilSVG(svgEl, { W: 800, H: 250 });
+  // aggiorna proprietà (sidebar)
   const props = airfoilProperties(prof);
   document.getElementById('prop-tc').textContent = (props.tMax * 100).toFixed(2) + ' %';
   document.getElementById('prop-xt').textContent = (props.xAtTMax * 100).toFixed(1) + ' % c';
   document.getElementById('prop-area').textContent = props.area_norm.toFixed(4);
   document.getElementById('prop-ix').textContent = props.Ix_norm.toExponential(2);
+
+  // se la modal è aperta, aggiorna anche il grande
+  if (modalState.open) draw2DLarge();
+}
+
+function draw2DLarge() {
+  const prof = drawAirfoilSVG(svgElLarge, {
+    W: 1400, H: 600,
+    padL: 80, padR: 80, padT: 140, padB: 180,
+    annotations: state.showAnnotations,
+    idSuffix: '-lg',
+    fontScale: 1.4
+  });
+  const props = airfoilProperties(prof);
+  document.getElementById('prop-tc-modal').textContent = (props.tMax * 100).toFixed(2) + ' %';
+  document.getElementById('prop-xt-modal').textContent = (props.xAtTMax * 100).toFixed(1) + ' % c';
+  document.getElementById('prop-area-modal').textContent = props.area_norm.toFixed(4);
+  document.getElementById('prop-ix-modal').textContent = props.Ix_norm.toExponential(2);
+  document.getElementById('modal-naca-big').textContent = currentCode();
 }
 
 // ============================================================================
@@ -613,9 +1021,17 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#f4ede0');
 scene.fog = new THREE.Fog('#f4ede0', 6, 12);
 
-const camera = new THREE.PerspectiveCamera(38,
+const camera = new THREE.PerspectiveCamera(34,
   viewer.clientWidth / viewer.clientHeight, 0.05, 50);
-camera.position.set(2.0, 1.3, 2.5);
+// Vista assonometrica didattica replicata dalla copertina del manuale:
+// - bordo d'attacco in primo piano (lato osservatore)
+// - apertura che fugge in diagonale verso il fondo destro
+// - estradosso visibile dall'alto, accenno di cassa alare dal lato radice
+//
+// Per ottenerla, la camera è posta in alto-davanti-laterale rispetto al
+// modello: una posizione "isometrica" classica.
+camera.position.set(-1.4, 1.1, 2.0);
+camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -638,11 +1054,26 @@ scene.add(grid);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enablePan = true; controls.enableZoom = true; controls.enableRotate = true;
-controls.minDistance = 0.6; controls.maxDistance = 6;
+controls.minDistance = 0.8; controls.maxDistance = 8;
 controls.target.set(0, 0, 0);
 
 // ----------- Wing assembly group ------------
+// La gerarchia è:
+//   wingGroup      — riceve l'auto-rotation (gira intorno all'asse verticale)
+//     └─ wingOrient — gruppo placeholder per future trasformazioni di vista
+//          └─ inner — gruppo costruito da rebuildWing()
+//
+// L'ala è modellata con:
+//   x  →  corda  (LE in x=0 → TE in x=c)
+//   y  →  apertura (root in y=0 → tip in y=b/2)
+//   z  →  spessore (estradosso in z>0, intradosso in z<0)
+//
+// La camera è posizionata per ottenere una vista assonometrica
+// che mostra l'apertura "in profondità", come nei disegni tecnici
+// aeronautici tradizionali (cfr. copertina del manuale).
 const wingGroup = new THREE.Group();
+const wingOrient = new THREE.Group();
+wingGroup.add(wingOrient);
 scene.add(wingGroup);
 
 // ----------- Materials (riutilizzati) -------
@@ -655,9 +1086,12 @@ const matSpar = new THREE.MeshStandardMaterial({
 const matStringer = new THREE.MeshStandardMaterial({
   color: 0x5a7aa8, roughness: 0.4, metalness: 0.7
 });
+// Rivestimento: opacità calibrata per intravedere le centine interne
+// senza confonderle visivamente. Side: FrontSide perché la mesh è chiusa
+// con normali coerenti verso l'esterno (vedi makeSkinClosed).
 const matSkin = new THREE.MeshStandardMaterial({
-  color: 0xaabfdc, transparent: true, opacity: 0.22,
-  side: THREE.DoubleSide, roughness: 0.3, metalness: 0.5, depthWrite: false
+  color: 0xc4d2e3, transparent: true, opacity: 0.42,
+  side: THREE.FrontSide, roughness: 0.4, metalness: 0.25
 });
 const matEdges = new THREE.LineBasicMaterial({ color: 0x0d2240 });
 const matGuide = new THREE.LineDashedMaterial({
@@ -696,41 +1130,123 @@ function makeRib(profile, chord, yPos) {
   const geo = new THREE.ExtrudeGeometry(shape, {
     depth: thickness, bevelEnabled: false, curveSegments: 24
   });
-  geo.rotateX(-Math.PI / 2);
-  geo.translate(0, yPos - thickness / 2, 0);
+  // ExtrudeGeometry produce un volume nel piano XY, esteso lungo +Z da
+  // z=0 a z=thickness. Per portarlo in un piano XZ "naturale" (corda lungo
+  // X, spessore lungo Z, ingombro lungo Y) ruotiamo di +π/2 attorno a X:
+  //   (X, Y, Z) → (X, -Z, Y)
+  // Risultato:
+  //   - punto NACA (x*c, y_naca*c, 0)         → (x*c, 0, y_naca*c)
+  //     l'estradosso (y_naca>0) finisce a z>0, coerente con la pelle.
+  //   - punto estruso (x*c, y_naca*c, thickness) → (x*c, -thickness, y_naca*c)
+  //     la centina si estende verso y negativa per uno spessore.
+  // Poi traslo in y per portare il centro della centina a yPos.
+  geo.rotateX(Math.PI / 2);
+  geo.translate(0, yPos + thickness / 2, 0);
   const mesh = new THREE.Mesh(geo, matRib);
   mesh.castShadow = true; mesh.receiveShadow = true;
-  // bordo
   const edges = new THREE.EdgesGeometry(geo, 20);
   const line = new THREE.LineSegments(edges, matEdges);
   mesh.add(line);
-  // resetto la trasformazione delle line rispetto al parent (geometria già traslata)
   return mesh;
 }
 
+/**
+ * Costruisce un longherone con sezione a doppia T (I-beam).
+ * Geometria realistica: flange superiore e inferiore (orizzontali, larghe
+ * nella direzione della corda) collegate da un'anima verticale sottile.
+ *
+ *   ╔═══════════╗   ← flangia superiore
+ *       ║                ║   ← anima
+ *       ║                ║
+ *   ╚═══════════╝   ← flangia inferiore
+ *
+ * Proporzioni (didattiche, ispirate a un longherone tipico di velivolo
+ * leggero in lega di alluminio):
+ *   h = altezza totale = 65% dello spessore locale del profilo
+ *   b_f = larghezza flange = 18% di c (corda locale)  -- ridotto a misura
+ *   t_f = spessore flange = 8% di h
+ *   t_w = spessore anima  = 5% di h
+ *
+ * La sezione viene "lofted" linearmente dalla radice al tip, seguendo la
+ * rastremazione: corda e spessore variano con y.
+ */
 function makeSpar(profile, chordRoot, chordTip, span, xFrac) {
   const yU = profile.upper.find(p => p.x >= xFrac)?.y ?? 0;
   const yL = profile.lower.find(p => p.x >= xFrac)?.y ?? 0;
   const thk = yU - yL;
-  const hRoot = 0.75 * thk * chordRoot;
-  const hTip  = 0.75 * thk * chordTip;
-  const w = 0.012;
 
+  // altezza totale del longherone (anima + flange): 65% dello spessore locale
+  const ratioH = 0.65;
+  const hRoot = ratioH * thk * chordRoot;
+  const hTip  = ratioH * thk * chordTip;
+  // larghezza flangia (nella direzione x = corda): 14% della corda locale
+  const ratioBf = 0.14;
+  const bfRoot = ratioBf * chordRoot;
+  const bfTip  = ratioBf * chordTip;
+  // spessori (riportati in metri, costanti lungo l'apertura)
+  const tf = 0.004;   // flange: 4 mm
+  const tw = 0.003;   // anima: 3 mm
+
+  // centro della sezione in coordinate locali del profilo
   const xRoot = xFrac * chordRoot, xTip = xFrac * chordTip;
-  const zRoot = 0.5 * (yU + yL) * chordRoot, zTip = 0.5 * (yU + yL) * chordTip;
+  const zCRoot = 0.5 * (yU + yL) * chordRoot;
+  const zCTip  = 0.5 * (yU + yL) * chordTip;
+
   const v = [], idx = [];
   const pf = (p1, p2, p3, p4) => {
     const b = v.length / 3;
     v.push(...p1, ...p2, ...p3, ...p4);
     idx.push(b, b+1, b+2, b, b+2, b+3);
   };
-  const rAS = [xRoot - w/2, 0, zRoot + hRoot/2], rAI = [xRoot - w/2, 0, zRoot - hRoot/2];
-  const rPS = [xRoot + w/2, 0, zRoot + hRoot/2], rPI = [xRoot + w/2, 0, zRoot - hRoot/2];
-  const tAS = [xTip - w/2, span, zTip + hTip/2], tAI = [xTip - w/2, span, zTip - hTip/2];
-  const tPS = [xTip + w/2, span, zTip + hTip/2], tPI = [xTip + w/2, span, zTip - hTip/2];
-  pf(rAS, tAS, tAI, rAI); pf(rPI, tPI, tPS, rPS);
-  pf(rAS, rPS, tPS, tAS); pf(rAI, tAI, tPI, rPI);
-  pf(rAS, rAI, rPI, rPS); pf(tAS, tPS, tPI, tAI);
+
+  /**
+   * Costruisce un "box" tra root e tip dati i 4 vertici della sezione root
+   * (x0,z0)..(x3,z3) e i 4 vertici tip. Ogni box ha 6 facce.
+   */
+  function makeBox(sec0, sec1) {
+    const [a0,b0,c0,d0] = sec0;
+    const [a1,b1,c1,d1] = sec1;
+    pf(a0, a1, b1, b0);   // faccia "anteriore" (verso -x)
+    pf(c0, c1, d1, d0);   // faccia "posteriore"
+    pf(b0, b1, c1, c0);   // faccia inferiore della box
+    pf(d0, d1, a1, a0);   // faccia superiore della box
+    pf(a0, b0, c0, d0);   // sezione root
+    pf(a1, d1, c1, b1);   // sezione tip
+  }
+
+  // Per ogni sezione (root o tip) genero i 4 vertici di:
+  //   - flangia superiore (rettangolo orizzontale)
+  //   - anima             (rettangolo verticale stretto)
+  //   - flangia inferiore (rettangolo orizzontale)
+  function sectionCorners(xCenter, zCenter, h, bf, y) {
+    // flangia superiore: 4 vertici (LE-up, LE-dn, TE-dn, TE-up) ordine antiorario
+    const topU_LE = [xCenter - bf/2, y, zCenter + h/2];
+    const topL_LE = [xCenter - bf/2, y, zCenter + h/2 - tf];
+    const topL_TE = [xCenter + bf/2, y, zCenter + h/2 - tf];
+    const topU_TE = [xCenter + bf/2, y, zCenter + h/2];
+    // flangia inferiore
+    const botU_LE = [xCenter - bf/2, y, zCenter - h/2 + tf];
+    const botL_LE = [xCenter - bf/2, y, zCenter - h/2];
+    const botL_TE = [xCenter + bf/2, y, zCenter - h/2];
+    const botU_TE = [xCenter + bf/2, y, zCenter - h/2 + tf];
+    // anima
+    const webU_LE = [xCenter - tw/2, y, zCenter + h/2 - tf];
+    const webL_LE = [xCenter - tw/2, y, zCenter - h/2 + tf];
+    const webL_TE = [xCenter + tw/2, y, zCenter - h/2 + tf];
+    const webU_TE = [xCenter + tw/2, y, zCenter + h/2 - tf];
+    return {
+      top:    [topU_LE, topL_LE, topL_TE, topU_TE],
+      bottom: [botU_LE, botL_LE, botL_TE, botU_TE],
+      web:    [webU_LE, webL_LE, webL_TE, webU_TE],
+    };
+  }
+
+  const r = sectionCorners(xRoot, zCRoot, hRoot, bfRoot, 0);
+  const t = sectionCorners(xTip,  zCTip,  hTip,  bfTip,  span);
+
+  makeBox(r.top,    t.top);
+  makeBox(r.web,    t.web);
+  makeBox(r.bottom, t.bottom);
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
@@ -739,7 +1255,7 @@ function makeSpar(profile, chordRoot, chordTip, span, xFrac) {
 
   const mesh = new THREE.Mesh(geo, matSpar);
   mesh.castShadow = true; mesh.receiveShadow = true;
-  const edges = new THREE.EdgesGeometry(geo, 15);
+  const edges = new THREE.EdgesGeometry(geo, 18);
   const line = new THREE.LineSegments(edges, matEdges);
   mesh.add(line);
   return mesh;
@@ -772,16 +1288,105 @@ function makeStringer(profile, chordRoot, chordTip, span, xFrac, surface) {
   return mesh;
 }
 
+/**
+ * Costruisce metà rivestimento (estradosso o intradosso) come superficie
+ * tra il profilo di radice e il profilo di tip.
+ *
+ * Per la vista esplosa servono due metà separate (estradosso e intradosso
+ * vengono allontanati lungo z opposti).
+ * Per la vista assemblata si usa makeSkinClosed più sotto, che chiude anche
+ * le sezioni a root e a tip per dare un solido vero.
+ *
+ * Le normali sono orientate verso l'esterno (estradosso → +z, intradosso → -z)
+ * grazie al winding order dei triangoli.
+ */
 function makeSkinHalf(profile, chordRoot, chordTip, span, side) {
   const C = side === 'upper' ? profile.upper : profile.lower;
   const N = C.length;
   const verts = [], idx = [];
+
   for (let k = 0; k < N; k++) verts.push(C[k].x * chordRoot, 0, C[k].y * chordRoot);
-  for (let k = 0; k < N; k++) verts.push(C[k].x * chordTip, span, C[k].y * chordTip);
+  for (let k = 0; k < N; k++) verts.push(C[k].x * chordTip,  span, C[k].y * chordTip);
+
+  if (side === 'upper') {
+    for (let k = 0; k < N - 1; k++) {
+      const a = k, b = k + 1, c = k + N, d = k + 1 + N;
+      idx.push(a, b, d, a, d, c);
+    }
+  } else {
+    for (let k = 0; k < N - 1; k++) {
+      const a = k, b = k + 1, c = k + N, d = k + 1 + N;
+      idx.push(a, d, b, a, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, matSkin);
+}
+
+/**
+ * Costruisce il rivestimento intero come solido chiuso:
+ *   - estradosso (upper) lofted da root a tip
+ *   - intradosso (lower) lofted da root a tip
+ *   - chiusura root (pannello tra estradosso e intradosso a y=0)
+ *   - chiusura tip  (pannello tra estradosso e intradosso a y=span)
+ *
+ * Normali tutte orientate verso l'esterno; può usare side: FrontSide
+ * e materiali opachi senza glitch.
+ */
+function makeSkinClosed(profile, chordRoot, chordTip, span) {
+  const U = profile.upper;     // dal LE (x=0) al TE (x=1)
+  const L = profile.lower;     // idem
+  const N = U.length;
+  const verts = [];
+  const idx = [];
+
+  // Indici (offset) per i quattro anelli:
+  //   0 .. N-1            upper root
+  //   N .. 2N-1           upper tip
+  //   2N .. 3N-1          lower root
+  //   3N .. 4N-1          lower tip
+  const offUR = 0;
+  const offUT = N;
+  const offLR = 2 * N;
+  const offLT = 3 * N;
+
+  for (let k = 0; k < N; k++) verts.push(U[k].x * chordRoot, 0,    U[k].y * chordRoot);
+  for (let k = 0; k < N; k++) verts.push(U[k].x * chordTip,  span, U[k].y * chordTip);
+  for (let k = 0; k < N; k++) verts.push(L[k].x * chordRoot, 0,    L[k].y * chordRoot);
+  for (let k = 0; k < N; k++) verts.push(L[k].x * chordTip,  span, L[k].y * chordTip);
+
+  // --- Estradosso: winding tale che la normale punti verso +z ---
   for (let k = 0; k < N - 1; k++) {
-    const a = k, b = k + 1, c = k + N, d = k + 1 + N;
+    const a = offUR + k, b = offUR + k + 1;
+    const c = offUT + k, d = offUT + k + 1;
     idx.push(a, b, d, a, d, c);
   }
+  // --- Intradosso: winding opposto, normale verso -z ---
+  for (let k = 0; k < N - 1; k++) {
+    const a = offLR + k, b = offLR + k + 1;
+    const c = offLT + k, d = offLT + k + 1;
+    idx.push(a, d, b, a, c, d);
+  }
+  // --- Chiusura ROOT (y=0): triangoli a fan tra upper root e lower root ---
+  // i due profili upper e lower condividono il LE (k=0) e il TE (k=N-1).
+  // La normale di questa faccia deve puntare verso -y (esterno della radice).
+  for (let k = 0; k < N - 1; k++) {
+    const u0 = offUR + k, u1 = offUR + k + 1;
+    const l0 = offLR + k, l1 = offLR + k + 1;
+    // strip orientato per avere normale in -y:
+    idx.push(u0, l0, l1, u0, l1, u1);
+  }
+  // --- Chiusura TIP (y=span): normale in +y ---
+  for (let k = 0; k < N - 1; k++) {
+    const u0 = offUT + k, u1 = offUT + k + 1;
+    const l0 = offLT + k, l1 = offLT + k + 1;
+    idx.push(u0, u1, l1, u0, l1, l0);
+  }
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   geo.setIndex(idx);
@@ -816,6 +1421,7 @@ let stringerMeshesUpper = [];
 let stringerMeshesLower = [];
 let skinUpperMesh = null;
 let skinLowerMesh = null;
+let skinClosedMesh = null;
 let guideLines = [];
 let ribGuideData = [];   // {x, y0, z, dyMax} per ricalcolo guide
 
@@ -832,20 +1438,22 @@ function disposeChildren(group) {
 }
 
 function rebuildWing() {
-  disposeChildren(wingGroup);
+  disposeChildren(wingOrient);
   ribMeshes = []; sparMeshes = [];
   stringerMeshesUpper = []; stringerMeshesLower = [];
-  skinUpperMesh = null; skinLowerMesh = null;
+  skinUpperMesh = null; skinLowerMesh = null; skinClosedMesh = null;
   guideLines = []; ribGuideData = [];
 
   const profile = generateNACA4(currentCode());
   const cr = state.chordRoot, ct = state.chordTip, span = state.span;
   const cx = (cr + ct) / 4, cy = span / 2;
 
-  // gruppo "centrato"
+  // Centratura del modello prima della rotazione di wingOrient:
+  //   - sposto il modello in modo che il suo baricentro stia all'origine
+  //     (apertura centrata in y, corda centrata in x)
+  //   - la rotazione di wingOrient porta poi y modello → x mondo (orizzontale)
   const inner = new THREE.Group();
-  inner.position.set(0, -cy, 0);
-  wingGroup.position.set(-cx, 0, 0);
+  inner.position.set(-cx, -cy, 0);
 
   const chordAt = (y) => cr + (ct - cr) * (y / span);
 
@@ -861,7 +1469,6 @@ function rebuildWing() {
       ribMeshes.push(mesh);
       ribGuideData.push({ x: chordAt(y) * 0.5, y0: y, z: 0, dyMax });
     }
-    // guide lines (una per centina, riusiamo geometrie semplici)
     for (let i = 0; i < state.nRibs; i++) {
       const r = ribGuideData[i];
       const g = new THREE.BufferGeometry().setFromPoints([
@@ -897,14 +1504,23 @@ function rebuildWing() {
   }
 
   // RIVESTIMENTO
+  // Costruisco due rappresentazioni:
+  //   - skinClosed: solido chiuso (estradosso + intradosso + chiusure)
+  //     usato in modalità assemblata. Side: FrontSide, opacità 0.55.
+  //   - skinUpper / skinLower: due metà aperte, usate solo durante
+  //     la vista esplosa (le due metà si allontanano lungo z).
+  // applyExplodeOffsets() commuta la visibilità in base a explodeCurrent.
   if (state.showSkin) {
+    skinClosedMesh = makeSkinClosed(profile, cr, ct, span);
     skinUpperMesh = makeSkinHalf(profile, cr, ct, span, 'upper');
     skinLowerMesh = makeSkinHalf(profile, cr, ct, span, 'lower');
-    inner.add(skinUpperMesh, skinLowerMesh);
+    skinUpperMesh.visible = false;
+    skinLowerMesh.visible = false;
+    inner.add(skinClosedMesh, skinUpperMesh, skinLowerMesh);
   }
 
   inner.add(makeAxes());
-  wingGroup.add(inner);
+  wingOrient.add(inner);
 
   applyExplodeOffsets();
 }
@@ -943,9 +1559,20 @@ function applyExplodeOffsets() {
   for (const m of stringerMeshesUpper) m.position.set(0, 0, 0.22 * eT);
   for (const m of stringerMeshesLower) m.position.set(0, 0, -0.22 * eT);
 
-  // rivestimento: due metà separate lungo z
-  if (skinUpperMesh) skinUpperMesh.position.set(0, 0, 0.45 * eT);
-  if (skinLowerMesh) skinLowerMesh.position.set(0, 0, -0.45 * eT);
+  // RIVESTIMENTO:
+  //   - assemblato (eT ≈ 0)     → mostra skinClosed, nasconde le due metà
+  //   - esploso (eT > soglia)   → nasconde skinClosed, mostra le due metà
+  // La soglia (0.02) evita "flickering" quando esplodi/imploridi.
+  const explodedSkin = eT > 0.02;
+  if (skinClosedMesh) skinClosedMesh.visible = !explodedSkin;
+  if (skinUpperMesh) {
+    skinUpperMesh.visible = explodedSkin;
+    skinUpperMesh.position.set(0, 0, 0.45 * eT);
+  }
+  if (skinLowerMesh) {
+    skinLowerMesh.visible = explodedSkin;
+    skinLowerMesh.position.set(0, 0, -0.45 * eT);
+  }
 }
 
 // ============================================================================
@@ -1000,6 +1627,20 @@ function updateLabels() {
 
   document.getElementById('sl-p').disabled = (state.m === 0);
 
+  // -------- sincronizzazione modal ---------
+  const slMmod = document.getElementById('sl-m-modal');
+  const slPmod = document.getElementById('sl-p-modal');
+  const slTmod = document.getElementById('sl-t-modal');
+  if (slMmod) {
+    slMmod.value = state.m;
+    slPmod.value = state.p;
+    slTmod.value = state.t;
+    slPmod.disabled = (state.m === 0);
+    document.getElementById('lab-m-modal').textContent = state.m + ' %';
+    document.getElementById('lab-p-modal').textContent = state.p === 0 ? '—' : (state.p * 10) + ' %';
+    document.getElementById('lab-t-modal').textContent = String(state.t).padStart(2, '0') + ' %';
+  }
+
   const bFull = 2 * state.span;
   const meanChord = (state.chordRoot + state.chordTip) / 2;
   const S = 2 * state.span * meanChord;
@@ -1050,6 +1691,34 @@ bindRange('sl-ribs', 'nRibs', v => parseInt(v, 10));
 bindRange('sl-sf', 'sparFront');
 bindRange('sl-sr', 'sparRear');
 
+// ---- Sincronizzazione slider modal → state (anche slider piccoli) ----
+function bindModalRange(id, smallId, key, parser = parseFloat, rebuild = false) {
+  const el = document.getElementById(id);
+  const small = document.getElementById(smallId);
+  el.addEventListener('input', () => {
+    state[key] = parser(el.value);
+    small.value = el.value;            // sincronizza il piccolo
+    refreshAll(rebuild);
+    triggerNacaPulse();
+  });
+}
+bindModalRange('sl-m-modal', 'sl-m', 'm', v => parseInt(v, 10), true);
+bindModalRange('sl-p-modal', 'sl-p', 'p', v => parseInt(v, 10), true);
+bindModalRange('sl-t-modal', 'sl-t', 't', v => parseInt(v, 10), true);
+
+// pulse visivo del codice NACA grande quando cambia
+let pulseTimeout = null;
+function triggerNacaPulse() {
+  const el = document.getElementById('modal-naca-big');
+  if (!el) return;
+  el.classList.remove('pulse');
+  // forzo reflow per riavviare l'animazione
+  void el.offsetWidth;
+  el.classList.add('pulse');
+  clearTimeout(pulseTimeout);
+  pulseTimeout = setTimeout(() => el.classList.remove('pulse'), 500);
+}
+
 // esplosione (non richiede rebuild, solo applicazione offset)
 document.getElementById('sl-explode').addEventListener('input', (e) => {
   state.explodeTarget = parseFloat(e.target.value);
@@ -1073,6 +1742,82 @@ bindCheck('cb-stringers', 'showStringers');
 bindCheck('cb-skin', 'showSkin');
 bindCheck('cb-guides', 'showGuides', false);
 
+// Checkbox modal sincronizzati con quelli laterali
+document.getElementById('cb-camber-modal').addEventListener('change', (e) => {
+  state.showCamber = e.target.checked;
+  document.getElementById('cb-camber').checked = e.target.checked;
+  refreshAll(false);
+});
+document.getElementById('cb-thickness-modal').addEventListener('change', (e) => {
+  state.showThickness = e.target.checked;
+  document.getElementById('cb-thickness').checked = e.target.checked;
+  refreshAll(false);
+});
+document.getElementById('cb-annot').addEventListener('change', (e) => {
+  state.showAnnotations = e.target.checked;
+  if (modalState.open) draw2DLarge();
+});
+
+// quando lo slider piccolo viene mosso, aggiorna anche la versione modal
+['sl-m', 'sl-p', 'sl-t'].forEach(id => {
+  const small = document.getElementById(id);
+  small.addEventListener('input', () => {
+    const big = document.getElementById(id + '-modal');
+    if (big) big.value = small.value;
+    if (modalState.open) triggerNacaPulse();
+  });
+});
+
+// ============================================================================
+//  MODAL — apertura, chiusura, accessibilità
+// ============================================================================
+const modalBackdrop = document.getElementById('modal-backdrop');
+const airfoilWrap = document.getElementById('airfoil-wrap');
+
+function openModal() {
+  modalState.open = true;
+  modalBackdrop.classList.add('open');
+  modalBackdrop.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  // sincronizza i valori e disegna
+  const slMmod = document.getElementById('sl-m-modal');
+  slMmod.value = state.m;
+  document.getElementById('sl-p-modal').value = state.p;
+  document.getElementById('sl-t-modal').value = state.t;
+  document.getElementById('cb-camber-modal').checked = state.showCamber;
+  document.getElementById('cb-thickness-modal').checked = state.showThickness;
+  document.getElementById('cb-annot').checked = state.showAnnotations;
+  updateLabels();
+  draw2DLarge();
+}
+
+function closeModal() {
+  modalState.open = false;
+  modalBackdrop.classList.remove('open');
+  modalBackdrop.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+airfoilWrap.addEventListener('click', openModal);
+airfoilWrap.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    openModal();
+  }
+});
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+
+// click sullo sfondo (non sulla card)
+modalBackdrop.addEventListener('click', (e) => {
+  if (e.target === modalBackdrop) closeModal();
+});
+
+// ESC per chiudere
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && modalState.open) closeModal();
+});
+
 document.getElementById('cb-autorot').addEventListener('change', (e) => {
   state.autoRotate = e.target.checked;
 });
@@ -1091,7 +1836,12 @@ PRESETS.forEach(code => {
     document.getElementById('sl-m').value = state.m;
     document.getElementById('sl-p').value = state.p;
     document.getElementById('sl-t').value = state.t;
+    // sincronizza anche gli slider modal
+    document.getElementById('sl-m-modal').value = state.m;
+    document.getElementById('sl-p-modal').value = state.p;
+    document.getElementById('sl-t-modal').value = state.t;
     refreshAll();
+    if (modalState.open) triggerNacaPulse();
   });
   presetRow.appendChild(btn);
 });
