@@ -548,16 +548,20 @@ html, body {
     </div>
 
     <div class="section">
-      <h3>Longheroni</h3>
-      <div class="control">
-        <label>long. anteriore <span class="val" id="lab-sf">20 % c</span></label>
-        <input type="range" id="sl-sf" min="0.10" max="0.40" step="0.01" value="0.20" />
+      <h3>Longheroni <span class="ref">[config]</span></h3>
+      <div class="preset-row" style="grid-template-columns: 1fr 1fr; margin-top: 0; margin-bottom: 10px;">
+        <button class="preset-btn config-btn active" data-config="mono">monolongherone</button>
+        <button class="preset-btn config-btn" data-config="bi">bi-longherone</button>
       </div>
-      <div class="control">
+      <div class="control" id="ctrl-sf">
+        <label><span id="lab-sf-name">longherone (% c)</span> <span class="val" id="lab-sf">30 % c</span></label>
+        <input type="range" id="sl-sf" min="0.20" max="0.45" step="0.01" value="0.30" />
+      </div>
+      <div class="control" id="ctrl-sr" style="display: none;">
         <label>long. posteriore <span class="val" id="lab-sr">65 % c</span></label>
         <input type="range" id="sl-sr" min="0.50" max="0.85" step="0.01" value="0.65" />
       </div>
-      <p>La regione tra i due longheroni costituisce la <strong>cassa alare</strong>: assorbe flessione e torsione.</p>
+      <p id="spar-note">In configurazione <strong>monolongherone</strong> il longherone è in genere posto al punto di <strong>massimo spessore</strong> del profilo (≈ 30% c per i NACA 4 cifre): è la posizione che massimizza il momento d'inerzia disponibile per la flessione.</p>
     </div>
 
     <div class="section">
@@ -738,7 +742,8 @@ function airfoilProperties(profile) {
 const state = {
   m: 2, p: 4, t: 12,
   chordRoot: 0.50, chordTip: 0.30, span: 1.40, nRibs: 8,
-  sparFront: 0.20, sparRear: 0.65,
+  sparFront: 0.30, sparRear: 0.65,
+  sparConfig: 'mono',   // 'mono' (un solo longherone in sparFront) | 'bi'
   showRibs: true, showSpars: true, showStringers: true, showSkin: true,
   showCamber: true, showThickness: true,
   autoRotate: false,
@@ -1484,12 +1489,18 @@ function rebuildWing() {
     }
   }
 
-  // LONGHERONI
+  // LONGHERONI: in configurazione 'mono' viene generato solo il longherone
+  // (in sparFront, tipicamente al 30% c, punto di massimo spessore);
+  // in 'bi' vengono generati anteriore e posteriore.
   if (state.showSpars) {
     const sf = makeSpar(profile, cr, ct, span, state.sparFront);
-    const sr = makeSpar(profile, cr, ct, span, state.sparRear);
-    sparMeshes.push(sf, sr);
-    inner.add(sf, sr);
+    sparMeshes.push(sf);
+    inner.add(sf);
+    if (state.sparConfig === 'bi') {
+      const sr = makeSpar(profile, cr, ct, span, state.sparRear);
+      sparMeshes.push(sr);
+      inner.add(sr);
+    }
   }
 
   // CORRENTI
@@ -1550,8 +1561,12 @@ function applyExplodeOffsets() {
     for (const g of guideLines) g.visible = false;
   }
 
-  // longheroni: ant. avanti (-x), post. indietro (+x); con z opposte
-  if (sparMeshes.length >= 2) {
+  // longheroni:
+  //   mono → l'unico longherone si solleva lungo +z (sale dalla cassa)
+  //   bi   → ant. avanti (-x), post. indietro (+x), con z opposte
+  if (state.sparConfig === 'mono' && sparMeshes.length >= 1) {
+    sparMeshes[0].position.set(0, 0, 0.30 * eT);
+  } else if (sparMeshes.length >= 2) {
     sparMeshes[0].position.set(-0.25 * eT, 0, 0.12 * eT);
     sparMeshes[1].position.set(0.25 * eT, 0, -0.12 * eT);
   }
@@ -1690,6 +1705,37 @@ bindRange('sl-span', 'span');
 bindRange('sl-ribs', 'nRibs', v => parseInt(v, 10));
 bindRange('sl-sf', 'sparFront');
 bindRange('sl-sr', 'sparRear');
+
+// --- Selettore configurazione longheroni (mono / bi) ---
+document.querySelectorAll('.config-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cfg = btn.dataset.config;
+    state.sparConfig = cfg;
+    // aggiorno UI: bottoni attivi
+    document.querySelectorAll('.config-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.config === cfg);
+    });
+    // mostro/nascondo lo slider del longherone posteriore
+    document.getElementById('ctrl-sr').style.display = (cfg === 'bi') ? '' : 'none';
+    // cambio il nome del primo slider e la nota didattica
+    const labName = document.getElementById('lab-sf-name');
+    const note = document.getElementById('spar-note');
+    if (cfg === 'mono') {
+      labName.textContent = 'longherone (% c)';
+      note.innerHTML = 'In configurazione <strong>monolongherone</strong> il longherone è in genere posto al punto di <strong>massimo spessore</strong> del profilo (≈ 30% c per i NACA 4 cifre): è la posizione che massimizza il momento d\'inerzia disponibile per la flessione.';
+      // sposto il longherone al 30% c (massimo spessore)
+      state.sparFront = 0.30;
+      document.getElementById('sl-sf').value = 0.30;
+    } else {
+      labName.textContent = 'long. anteriore';
+      note.innerHTML = 'In configurazione <strong>bi-longherone</strong> la regione tra i due longheroni costituisce la <strong>cassa alare</strong>: assorbe la flessione (flange) e la torsione (cassa chiusa).';
+      // sposto l'anteriore al 20% c, valore tipico per bi-longherone
+      state.sparFront = 0.20;
+      document.getElementById('sl-sf').value = 0.20;
+    }
+    refreshAll();
+  });
+});
 
 // ---- Sincronizzazione slider modal → state (anche slider piccoli) ----
 function bindModalRange(id, smallId, key, parser = parseFloat, rebuild = false) {
